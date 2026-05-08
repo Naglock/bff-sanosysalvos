@@ -57,6 +57,9 @@ El sistema está diseñado para que la información crítica esté protegida, pe
 ### Resumen de Rutas
 | Método | Endpoint | Acceso | Propósito |
 | :--- | :--- | :--- | :--- |
+| **POST** | `/usuarios/registro` | Publico | Registrar a un usuario nuevo (por defecto sera USUARIO) |
+| **POST** | `/auth/login` | Publico | Validar las credenciales del usuario y establecer la cookie JWT |
+| **POST** | `/auth/logout` | Publico | Elimina la cookie de sesion del navegador |
 | **GET** | `/dashboard/resumen/{id}` | Privado | Retorna Perfil, Mascotas Perdidas y reportes propios en un solo JSON. |
 | **GET** | `/reportes` | Público | Lista global de reportes activos para visualización en Mapas. |
 | **PUT** | `/reportes/{id}` | Privado | Edición de reportes (ej. cambiar estado a `RESUELTO`). |
