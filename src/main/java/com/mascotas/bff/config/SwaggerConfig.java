@@ -25,7 +25,7 @@ public class SwaggerConfig {
                         .contact(new Contact()
                                 .name("Equipo de Desarrollo - DUOC UC")
                                 .email("correos@duocuc.cl")))
-                // Configuramos Swagger para que use la cookie jwt_token
+                // Usa la cookie jwt_token
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName,

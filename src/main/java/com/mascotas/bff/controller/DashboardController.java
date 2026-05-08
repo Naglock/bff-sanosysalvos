@@ -43,7 +43,6 @@ public class DashboardController {
                 .collect(Collectors.toList());
 
         // 3. Mis reportes (Filtrados por el id del usuario logueado)
-        // Nota: Si tu microservicio de reportes no tiene este filtro, el BFF lo hace aquí:
         List<ReporteMsResponse> misReportes = todosLosReportes.stream()
                 .filter(r -> idUsuario.equals(r.usuarioId())) 
                 .collect(Collectors.toList());

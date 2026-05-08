@@ -18,7 +18,7 @@ public class MascotaClient {
         this.restClient = builder.baseUrl(mascotaUrl).build();
     }
 
-    // Mapeado a tu: @GetMapping ("/") -> Lista TODAS las mascotas
+    // Mapeado a: @GetMapping ("/") -> Lista TODAS las mascotas
     public List<MascotaMsResponse> listarTodas(String token) {
         return restClient.get()
                 .uri("/api/mascota") 
@@ -27,7 +27,7 @@ public class MascotaClient {
                 .body(new ParameterizedTypeReference<List<MascotaMsResponse>>() {});
     }
 
-    // Mapeado a tu: @PostMapping ("/") -> Crea una mascota usando Principal
+    // Mapeado a: @PostMapping ("/") -> Crea una mascota usando Principal
     public MascotaMsResponse guardar(MascotaCreateRequest request, String token) {
         return restClient.post()
                 .uri("/api/mascota")
