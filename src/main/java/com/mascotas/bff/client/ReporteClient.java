@@ -1,0 +1,87 @@
+package com.mascotas.bff.client;
+
+import com.mascotas.bff.dto.microservice.ReporteMsResponse;
+import com.mascotas.bff.dto.request.ReporteCreateRequest;
+import com.mascotas.bff.dto.request.ReporteUpdateRequest;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
+import java.util.List;
+
+@Service
+public class ReporteClient {
+
+    private final RestClient restClient;
+
+    public ReporteClient(RestClient.Builder builder, @Value("${ms.reporte.url}") String reporteUrl) {
+        this.restClient = builder.baseUrl(reporteUrl).build();
+    }
+
+// --- MÉTODOS GET (Públicos, no necesitan token) ---
+    
+    public List<ReporteMsResponse> listarTodos() {
+        return restClient.get()
+                .uri("/api/reporte")
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ReporteMsResponse>>() {});
+    }
+
+    public ReporteMsResponse buscarPorId(Integer id) {
+        return restClient.get()
+                .uri("/api/reporte/" + id)
+                .retrieve()
+                .body(ReporteMsResponse.class);
+    }
+
+    public List<ReporteMsResponse> buscarPorTipo(String tipo) {
+        return restClient.get()
+                .uri("/api/reporte/tipo/" + tipo)
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ReporteMsResponse>>() {});
+    }
+
+    public List<ReporteMsResponse> buscarPorTipoYEstado(String tipo, String estado) {
+        return restClient.get()
+                .uri("/api/reporte/tipo/" + tipo + "/estado/" + estado)
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ReporteMsResponse>>() {});
+    }
+
+    public List<ReporteMsResponse> buscarPorEspecieYTipo(String especie, String tipo) {
+        return restClient.get()
+                .uri("/api/reporte/especie/" + especie + "/tipo/" + tipo)
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ReporteMsResponse>>() {});
+    }
+
+    // --- MÉTODOS PUT/DELETE (Privados, SÍ necesitan token) ---
+    
+    public ReporteMsResponse guardar(ReporteCreateRequest request, String token) {
+        return restClient.post()
+                .uri("/api/reporte")
+                .header("Authorization", "Bearer " + token)
+                .body(request)
+                .retrieve()
+                .body(ReporteMsResponse.class);
+    }
+
+    public ReporteMsResponse actualizarReporte(Integer id, ReporteUpdateRequest request, String token) {
+        return restClient.put()
+                .uri("/api/reporte/" + id)
+                .header("Authorization", "Bearer " + token) // Pasamos el JWT para el 'Principal'
+                .body(request)
+                .retrieve()
+                .body(ReporteMsResponse.class);
+    }
+
+    public void eliminarReporte(Integer id, String token) {
+        restClient.delete()
+                .uri("/api/reporte/" + id)
+                .header("Authorization", "Bearer " + token) // Pasamos el JWT para el 'Principal'
+                .retrieve()
+                .toBodilessEntity();
+    }
+}
