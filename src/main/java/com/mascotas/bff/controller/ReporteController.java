@@ -18,8 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -37,18 +37,27 @@ public class ReporteController {
     }
 
     @Operation(
-        summary = "Crear reporte integral (Orquestador)",
-        description = "Maneja 3 casos: A) Registra y reporta mascota perdida. B) Registra avistamiento anónimo. C) Reporta mascota ya existente mediante ID.",
+        summary = "Crear reporte integral (Orquestador con Imagen)",
+        description = "Maneja 3 casos y sube la foto: A) Registra y reporta mascota perdida. B) Registra avistamiento anónimo. C) Reporta mascota ya existente mediante ID.",
         responses = {
-            @ApiResponse(responseCode = "201", description = "Operación integral exitosa")
+            @ApiResponse(responseCode = "201", description = "Operación integral exitosa con imagen")
         }
     )
     @PostMapping(value = "/integral", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ReporteMsResponse> guardarReporteIntegral(
-            @RequestPart("reporte") ReporteIntegralRequest request,
+            @Parameter(description = "Pega el JSON exacto aquí") @RequestPart("datos") String datosJson,
             @RequestPart("foto") MultipartFile foto,
             @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
         
+        ReporteIntegralRequest request;
+        try {
+            // Convertimos el String crudo (que Swagger envía sin problemas) a nuestro objeto Java
+            ObjectMapper objectMapper = new ObjectMapper();
+            request = objectMapper.readValue(datosJson, ReporteIntegralRequest.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Error procesando el JSON en el BFF: Verifica la sintaxis. " + e.getMessage());
+        }
+
         Integer idMascotaFinal;
 
         if (request.mascotaId() != null) {
@@ -77,6 +86,7 @@ public class ReporteController {
         ReporteMsResponse reporteCreado = reporteClient.guardarIntegral(reporteCall, foto, token);
         return ResponseEntity.status(HttpStatus.CREATED).body(reporteCreado);
     }
+
     @Operation(summary = "Listar todos los reportes (Público)")
     @GetMapping
     public ResponseEntity<List<ReporteMsResponse>> listarTodos() {
@@ -113,7 +123,7 @@ public class ReporteController {
     @PutMapping("/{id}")
     public ResponseEntity<ReporteMsResponse> actualizar(
             @PathVariable Integer id,
-            @RequestBody ReporteUpdateRequest request,
+            @RequestBody ReporteUpdateRequest request, // Ahora usa correctamente org.springframework.web.bind.annotation.RequestBody
             @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
         
         ReporteMsResponse actualizado = reporteClient.actualizarReporte(id, request, token);

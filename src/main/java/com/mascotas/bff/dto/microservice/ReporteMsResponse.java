@@ -15,7 +15,7 @@ public record ReporteMsResponse(
     Integer telefonoContacto,
     String nombreMascota,
     String razaMascota,
-    @JsonProperty("usuarioId")
+    @JsonProperty("id_usuario")
     Integer usuarioId,
     String urlFoto
 ) {}
