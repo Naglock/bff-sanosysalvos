@@ -3,6 +3,7 @@ package com.mascotas.bff.controller;
 import com.mascotas.bff.client.UsuarioClient;
 import com.mascotas.bff.dto.microservice.UsuarioMsResponse;
 import com.mascotas.bff.dto.request.UsuarioCreateRequest;
+import com.mascotas.bff.dto.request.UsuarioUpdateRequest; // Asegúrate de tener este DTO creado
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,14 +38,41 @@ public class UsuarioController {
     public ResponseEntity<UsuarioMsResponse> obtenerPerfil(
             @PathVariable Integer id,
             @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
-
-        // --- PRUEBA DE DEBUGGING ---
-        System.out.println("====== DEBUG ======");
-        System.out.println("ID solicitado: " + id);
-        System.out.println("Token recibido desde la Cookie: " + token);
-        System.out.println("===================");
         
         UsuarioMsResponse perfil = usuarioClient.buscarPorId(id, token);
         return ResponseEntity.ok(perfil);
+    }
+
+    @Operation(summary = "Actualizar perfil", description = "Actualiza los datos del usuario logueado usando la cookie de sesión.")
+    @PutMapping("/perfil")
+    public ResponseEntity<UsuarioMsResponse> actualizarPerfil(
+            @RequestBody UsuarioUpdateRequest request,
+            @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
+        
+        UsuarioMsResponse perfilActualizado = usuarioClient.actualizarPerfil(request, token);
+        return ResponseEntity.ok(perfilActualizado);
+    }
+    @Operation(summary = "Listar todos los usuarios", description = "Obtiene la lista completa de usuarios registrados. Requiere permisos de administrador.")
+    @GetMapping
+    public ResponseEntity<java.util.List<UsuarioMsResponse>> listarUsuarios(
+            @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
+        return ResponseEntity.ok(usuarioClient.listarUsuarios(token));
+    }
+
+    @Operation(summary = "Buscar por RUT", description = "Busca usuarios coincidiendo con el RUT proporcionado (formato con guion).")
+    @GetMapping("/rut/{rut}")
+    public ResponseEntity<java.util.List<UsuarioMsResponse>> buscarPorRut(
+            @PathVariable String rut,
+            @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
+        return ResponseEntity.ok(usuarioClient.buscarPorRut(rut, token));
+    }
+
+    @Operation(summary = "Eliminar usuario", description = "Elimina un usuario del sistema mediante su ID. Requiere permisos de administrador.")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarUsuario(
+            @PathVariable Integer id,
+            @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
+        usuarioClient.eliminarUsuario(id, token);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -17,6 +17,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 @Tag(name = "Reportes", description = "Operaciones de orquestación para alertas y avistamientos de mascotas")
@@ -39,9 +43,10 @@ public class ReporteController {
             @ApiResponse(responseCode = "201", description = "Operación integral exitosa")
         }
     )
-    @PostMapping("/integral")
+    @PostMapping(value = "/integral", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ReporteMsResponse> guardarReporteIntegral(
-            @RequestBody ReporteIntegralRequest request,
+            @RequestPart("reporte") ReporteIntegralRequest request,
+            @RequestPart("foto") MultipartFile foto,
             @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
         
         Integer idMascotaFinal;
@@ -69,7 +74,7 @@ public class ReporteController {
             request.tipo(), "ACTIVO", request.descripcion(), request.latitud(), request.longitud(), idMascotaFinal, request.usuarioId()
         );
 
-        ReporteMsResponse reporteCreado = reporteClient.guardar(reporteCall, token);
+        ReporteMsResponse reporteCreado = reporteClient.guardarIntegral(reporteCall, foto, token);
         return ResponseEntity.status(HttpStatus.CREATED).body(reporteCreado);
     }
     @Operation(summary = "Listar todos los reportes (Público)")
