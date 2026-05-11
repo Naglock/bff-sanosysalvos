@@ -72,4 +72,12 @@ public class UsuarioClient {
                 .retrieve()
                 .toBodilessEntity();
     }
+    // Llamada al PUT /api/usuarios/{id}/rol-admin (Para promover usuarios)
+    public UsuarioMsResponse promoverAAdmin(Integer id, String token) {
+        return restClient.put()
+                .uri("/api/usuarios/" + id + "/rol-admin")
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .body(UsuarioMsResponse.class);
+    }
 }

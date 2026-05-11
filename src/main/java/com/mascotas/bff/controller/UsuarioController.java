@@ -30,7 +30,7 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoUsuario);
     }
 
-    @Operation(summary = "Obtener perfil", description = "Obtiene los datos del usuario logueado mediante su ID.", responses = {
+    @Operation(summary = "Obtener perfil", description = "Obtiene los datos de un usuario especifico mediante su id.", responses = {
             @ApiResponse(responseCode = "200", description = "Perfil encontrado"),
             @ApiResponse(responseCode = "401", description = "No autorizado (Falta cookie)")
     })
@@ -74,5 +74,12 @@ public class UsuarioController {
             @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
         usuarioClient.eliminarUsuario(id, token);
         return ResponseEntity.noContent().build();
+    }
+    @Operation(summary = "Promover usuario a ADMIN", description = "Otorga privilegios de administrador a un usuario. Requiere que quien ejecuta la acción sea ADMIN.")
+    @PutMapping("/{id}/rol-admin")
+    public ResponseEntity<UsuarioMsResponse> promoverAAdmin(
+            @PathVariable Integer id,
+            @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
+        return ResponseEntity.ok(usuarioClient.promoverAAdmin(id, token));
     }
 }

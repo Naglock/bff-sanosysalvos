@@ -7,6 +7,5 @@ public record MascotaCreateRequest(
     String raza,
     String sexo,
     String tamaño,
-    String color,
-    Integer usuarioId // Agregamos el ID del usuario para asociar la mascota al usuario correcto
+    String color
 ) {}

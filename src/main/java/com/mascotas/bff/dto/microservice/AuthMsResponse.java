@@ -7,6 +7,6 @@ public record AuthMsResponse(
     String jwtToken, 
     String nombre, 
     @JsonProperty("id_usuario")
-    Integer idUsuario, 
+    String idUsuario, 
     String rol
 ) {}

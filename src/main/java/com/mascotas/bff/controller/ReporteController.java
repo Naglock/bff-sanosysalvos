@@ -71,7 +71,7 @@ public class ReporteController {
             String sexoFinal = (request.sexo() != null && !request.sexo().isBlank()) ? request.sexo() : "Desconocido";
             
             MascotaCreateRequest mascotaCall = new MascotaCreateRequest(
-                chipFinal, nombreFinal, request.especie(), razaFinal, sexoFinal, request.tamano(), request.color(), request.usuarioId()
+                chipFinal, nombreFinal, request.especie(), razaFinal, sexoFinal, request.tamano(), request.color()
             );
 
             MascotaMsResponse mascotaCreada = mascotaClient.guardar(mascotaCall, token);
