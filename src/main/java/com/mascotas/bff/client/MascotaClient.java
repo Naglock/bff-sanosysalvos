@@ -19,7 +19,7 @@ public class MascotaClient {
         this.restClient = builder.baseUrl(mascotaUrl).build();
     }
 
-    // --- MÉTODOS PÚBLICOS (No requieren token según tu Backend) ---
+    // --- MÉTODOS PÚBLICOS (No requieren Token) ---
 
     // GET: Lista TODAS las mascotas
     public List<MascotaMsResponse> listarTodas() {

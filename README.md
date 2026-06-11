@@ -2,7 +2,7 @@
 
 Este repositorio contiene el **BFF (Backend for Frontend)** encargado de orquestar la comunicación entre el Frontend (React) y los microservicios del sistema de reporte de mascotas para DUOC UC. Este componente centraliza la seguridad, simplifica el consumo de datos y optimiza la experiencia de usuario.
 
-## 🛠️ 1. Especificaciones Técnicas
+## 🛠️ Especificaciones Técnicas
 
 El proyecto utiliza tecnologías de vanguardia para garantizar un rendimiento óptimo en una arquitectura de microservicios:
 
@@ -15,7 +15,7 @@ El proyecto utiliza tecnologías de vanguardia para garantizar un rendimiento ó
 
 ---
 
-## 🚀 2. Guía de Integración para Frontend
+## 🚀 Guía de Integración para Frontend
 
 Para conectar el cliente (React + Vite) con este BFF, es imperativo configurar el cliente HTTP para manejar el estado de sesión basado en cookies.
 
@@ -43,7 +43,7 @@ export default api;
 
 ---
 
-## 🔒 3. Niveles de Acceso y Seguridad
+## 🔒 Niveles de Acceso y Seguridad
 
 El sistema está diseñado para que la información crítica esté protegida, pero manteniendo la utilidad pública del mapa de mascotas.
 
@@ -52,7 +52,7 @@ El sistema está diseñado para que la información crítica esté protegida, pe
 
 ---
 
-## 📌 4. Endpoints Vitales y Casos de Uso (Orquestación)
+## 📌 Endpoints Vitales y Casos de Uso (Orquestación)
 
 ### Resumen de Rutas
 | Método | Endpoint | Acceso | Propósito |
@@ -65,7 +65,7 @@ El sistema está diseñado para que la información crítica esté protegida, pe
 | **PUT** | `/reportes/{id}` | Privado | Edición de reportes (ej. cambiar estado a `RESUELTO`). |
 | **DELETE** | `/reportes/{id}` | Privado | Eliminación de registros de reportes. |
 
-### 🌟 El Endpoint Estrella: `POST /reportes/integral` (Privado)
+### El Endpoint Estrella: `POST /reportes/integral` (Privado)
 Este endpoint está diseñado para manejar múltiples escenarios desde un solo formulario en React, evitando que el usuario tenga que hacer pasos repetitivos. 
 
 **Caso 1: Reportar mascota propia YA registrada (Menú Desplegable)**
@@ -79,7 +79,7 @@ Si un usuario ve un perrito en la calle, envía un reporte tipo `"AVISTADA"` con
 
 ---
 
-## 🚑 5. Manejo de Errores Global
+## 🚑 Manejo de Errores Global
 
 El BFF centraliza y limpia las excepciones de los microservicios, entregando un formato consistente para facilitar la validación en formularios del lado del cliente:
 
@@ -96,7 +96,7 @@ El BFF centraliza y limpia las excepciones de los microservicios, entregando un 
 
 ---
 
-## 📖 6. Documentación Interactiva
+## 📖 Documentación Interactiva
 
 Puedes probar los flujos, realizar peticiones y revisar los esquemas de datos estructurados en:
 
@@ -104,7 +104,7 @@ Puedes probar los flujos, realizar peticiones y revisar los esquemas de datos es
 
 ---
 
-## ⚙️ 7. Comandos de Desarrollo
+## ⚙️ Comandos de Desarrollo
 
 ```bash
 # Limpiar dependencias y compilar el proyecto
