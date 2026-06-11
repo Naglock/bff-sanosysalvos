@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import com.mascotas.bff.util.JwtDecoderUtil;
 
 import java.util.List;
 
@@ -20,9 +21,11 @@ import java.util.List;
 public class MascotaController {
 
     private final MascotaClient mascotaClient;
+    private final JwtDecoderUtil jwtUtil; // Utilidad para decodificar el JWT y extraer información
 
-    public MascotaController(MascotaClient mascotaClient) {
+    public MascotaController(MascotaClient mascotaClient, JwtDecoderUtil jwtUtil) {
         this.mascotaClient = mascotaClient;
+        this.jwtUtil = jwtUtil;
     }
 
     // --- RUTAS PÚBLICAS (No requieren Cookie) ---
@@ -62,9 +65,25 @@ public class MascotaController {
     @Operation(summary = "Registrar una nueva mascota (Independiente del reporte)")
     @PostMapping
     public ResponseEntity<MascotaMsResponse> guardar(
-            @Valid @RequestBody MascotaCreateRequest request,
-            @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(mascotaClient.guardar(request, token));
+        @Valid @RequestBody MascotaCreateRequest request,
+        @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
+    
+    // 1. Extraer el ID del usuario desde el token (Supongamos que tienes un TokenProvider o JwtUtil)
+    Integer idUsuarioAutenticado = jwtUtil.extraerIdUsuario(token);
+    // 2. Creamos un nuevo objeto Request inyectándole el ID rescatado de la sesión
+    MascotaCreateRequest requestConDueno = new MascotaCreateRequest(
+        request.chipMascota(),
+        request.nombreMascota(),
+        request.especie(),
+        request.raza(),
+        request.sexo(),
+        request.tamaño(),
+        request.color(),
+        idUsuarioAutenticado 
+    );
+    
+    return ResponseEntity.status(HttpStatus.CREATED)
+            .body(mascotaClient.guardar(requestConDueno, token));
     }
 
     @Operation(summary = "Actualizar datos de una mascota")

@@ -12,7 +12,7 @@ public class AuthClient {
     private final RestClient restClient;
 
     // Usamos @Value para leer la URL desde application.properties
-    public AuthClient(RestClient.Builder builder, @Value("${ms.auth.url}") String authUrl) {
+    public AuthClient(RestClient.Builder builder, @Value("${ms.usuario.url}") String authUrl) {
         // Configuramos la URL base para todas las peticiones de este cliente
         this.restClient = builder.baseUrl(authUrl).build();
     }

@@ -2,13 +2,16 @@ package com.mascotas.bff.controller;
 
 import com.mascotas.bff.client.MascotaClient;
 import com.mascotas.bff.client.ReporteClient;
+import com.mascotas.bff.client.UsuarioClient;
 import com.mascotas.bff.dto.microservice.MascotaMsResponse;
 import com.mascotas.bff.dto.microservice.ReporteMsResponse;
+import com.mascotas.bff.dto.microservice.UsuarioMsResponse;
 import com.mascotas.bff.dto.request.MascotaCreateRequest;
 import com.mascotas.bff.dto.request.ReporteCreateRequest;
 import com.mascotas.bff.dto.request.ReporteIntegralRequest;
 import com.mascotas.bff.dto.request.ReporteUpdateRequest;
-
+import com.mascotas.bff.dto.response.UserInfoResponse;
+import com.mascotas.bff.util.JwtDecoderUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -30,10 +33,14 @@ public class ReporteController {
 
     private final ReporteClient reporteClient;
     private final MascotaClient mascotaClient;
+    private final UsuarioClient usuarioClient;
+    private final JwtDecoderUtil jwtDecoderUtil;
 
-    public ReporteController(ReporteClient reporteClient, MascotaClient mascotaClient) {
+    public ReporteController(ReporteClient reporteClient, MascotaClient mascotaClient, UsuarioClient usuarioClient, JwtDecoderUtil jwtDecoderUtil) {
         this.reporteClient = reporteClient;
         this.mascotaClient = mascotaClient;
+        this.usuarioClient = usuarioClient;
+        this.jwtDecoderUtil = jwtDecoderUtil;
     }
 
     @Operation(
@@ -45,46 +52,75 @@ public class ReporteController {
     )
     @PostMapping(value = "/integral", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ReporteMsResponse> guardarReporteIntegral(
-            @Parameter(description = "Pega el JSON exacto aquí") @RequestPart("datos") String datosJson,
-            @RequestPart("foto") MultipartFile foto,
-            @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
+        @Parameter(description = "Pega el JSON exacto aquí") @RequestPart("datos") String datosJson,
+        @RequestPart("foto") MultipartFile foto,
+        @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
+    
+    ReporteIntegralRequest request;
+    try {
+        ObjectMapper objectMapper = new ObjectMapper();
+        request = objectMapper.readValue(datosJson, ReporteIntegralRequest.class);
+    } catch (Exception e) {
+        throw new RuntimeException("Error procesando el JSON en el BFF: Verifica la sintaxis. " + e.getMessage());
+    }
+
+    Integer idUsuarioAutenticado = jwtDecoderUtil.extraerIdUsuario(token);
+    Integer idMascotaFinal;
+    
+    String nombreMascotaReporte;
+    String razaMascotaReporte;
+    String tipoReporteFinal;
+    if (request.mascotaId() != null) {
+        idMascotaFinal = request.mascotaId();
+        tipoReporteFinal = "PERDIDO";
         
-        ReporteIntegralRequest request;
-        try {
-            // Convertimos el String crudo (que Swagger envía sin problemas) a nuestro objeto Java
-            ObjectMapper objectMapper = new ObjectMapper();
-            request = objectMapper.readValue(datosJson, ReporteIntegralRequest.class);
-        } catch (Exception e) {
-            throw new RuntimeException("Error procesando el JSON en el BFF: Verifica la sintaxis. " + e.getMessage());
-        }
-
-        Integer idMascotaFinal;
-
-        if (request.mascotaId() != null) {
-            // CASO C: Mascota ya existe
-            idMascotaFinal = request.mascotaId();
-        } else {
-            // CASOS A y B: Mascota nueva o avistamiento
-            String nombreFinal = (request.nombreMascota() != null && !request.nombreMascota().isBlank()) ? request.nombreMascota() : "Desconocido";
-            String chipFinal = (request.chipMascota() != null && !request.chipMascota().isBlank()) ? request.chipMascota() : "Sin registro";
-            String razaFinal = (request.raza() != null && !request.raza().isBlank()) ? request.raza() : "Mestizo";
-            String sexoFinal = (request.sexo() != null && !request.sexo().isBlank()) ? request.sexo() : "Desconocido";
-            
-            MascotaCreateRequest mascotaCall = new MascotaCreateRequest(
-                chipFinal, nombreFinal, request.especie(), razaFinal, sexoFinal, request.tamano(), request.color()
-            );
-
-            MascotaMsResponse mascotaCreada = mascotaClient.guardar(mascotaCall, token);
-            idMascotaFinal = mascotaCreada.idMascota();
-        }
-
-        // Crear Reporte
-        ReporteCreateRequest reporteCall = new ReporteCreateRequest(
-            request.tipo(), "ACTIVO", request.descripcion(), request.latitud(), request.longitud(), idMascotaFinal, request.usuarioId()
+        MascotaMsResponse mascotaExistente = mascotaClient.buscarPorId(idMascotaFinal);
+        nombreMascotaReporte = mascotaExistente.nombreMascota();
+        razaMascotaReporte = mascotaExistente.raza();
+        
+    } else {
+        tipoReporteFinal = "AVISTADA";
+        String nombreFinal = (request.nombreMascota() != null && !request.nombreMascota().isBlank()) ? request.nombreMascota() : "Desconocido";
+        String chipFinal = (request.chipMascota() != null && !request.chipMascota().isBlank()) ? request.chipMascota() : "Sin registro";
+        String razaFinal = (request.raza() != null && !request.raza().isBlank()) ? request.raza() : "Mestizo";
+        String sexoFinal = (request.sexo() != null && !request.sexo().isBlank()) ? request.sexo() : "Desconocido";
+        
+        MascotaCreateRequest mascotaCall = new MascotaCreateRequest(
+            chipFinal, nombreFinal, request.especie(), razaFinal, sexoFinal, request.tamaño(), request.color(), idUsuarioAutenticado
         );
 
-        ReporteMsResponse reporteCreado = reporteClient.guardarIntegral(reporteCall, foto, token);
-        return ResponseEntity.status(HttpStatus.CREATED).body(reporteCreado);
+        MascotaMsResponse mascotaCreada = mascotaClient.guardar(mascotaCall, token);
+        idMascotaFinal = mascotaCreada.idMascota();
+        
+        nombreMascotaReporte = mascotaCreada.nombreMascota();
+        razaMascotaReporte = mascotaCreada.raza();
+    }
+
+    ReporteCreateRequest reporteCall = new ReporteCreateRequest(
+        tipoReporteFinal, "ACTIVO", request.descripcion(), request.latitud(), request.longitud(), idMascotaFinal, idUsuarioAutenticado
+    );
+
+    ReporteMsResponse reporteCreadoCrudo = reporteClient.guardarIntegral(reporteCall, foto, token);
+    
+    UsuarioMsResponse usuarioInfo = usuarioClient.buscarPorId(idUsuarioAutenticado, token);
+
+    ReporteMsResponse reporteEnriquecido = new ReporteMsResponse(
+        reporteCreadoCrudo.idReporte(),
+        reporteCreadoCrudo.tipo(),
+        reporteCreadoCrudo.estado(),
+        reporteCreadoCrudo.fecha(),
+        reporteCreadoCrudo.descripcion(),
+        reporteCreadoCrudo.latitud(),
+        reporteCreadoCrudo.longitud(),
+        usuarioInfo.nombre(), 
+        usuarioInfo.telefono(), 
+        nombreMascotaReporte,       
+        razaMascotaReporte,         
+        reporteCreadoCrudo.usuarioId(),
+        reporteCreadoCrudo.urlFoto()
+    );
+
+    return ResponseEntity.status(HttpStatus.CREATED).body(reporteEnriquecido);
     }
 
     @Operation(summary = "Listar todos los reportes (Público)")
@@ -123,7 +159,7 @@ public class ReporteController {
     @PutMapping("/{id}")
     public ResponseEntity<ReporteMsResponse> actualizar(
             @PathVariable Integer id,
-            @RequestBody ReporteUpdateRequest request, // Ahora usa correctamente org.springframework.web.bind.annotation.RequestBody
+            @RequestBody ReporteUpdateRequest request,
             @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
         
         ReporteMsResponse actualizado = reporteClient.actualizarReporte(id, request, token);

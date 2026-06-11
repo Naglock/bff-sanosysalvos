@@ -31,18 +31,12 @@ public class DashboardController {
     public ResponseEntity<DashboardResponse> obtenerResumen(
             @PathVariable Integer idUsuario,
             @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
-
-        // 1. Datos del perfil
         var perfil = usuarioClient.buscarPorId(idUsuario, token);
-
-        // 2. Reportes globales para el mapa (Filtrados por tipo PERDIDO y estado ACTIVO)
         List<ReporteMsResponse> todosLosReportes = reporteClient.listarTodos();
         
         List<ReporteMsResponse> perdidosZona = todosLosReportes.stream()
                 .filter(r -> "PERDIDO".equals(r.tipo()) && "ACTIVO".equals(r.estado()))
                 .collect(Collectors.toList());
-
-        // 3. Mis reportes (Filtrados por el id del usuario logueado)
         List<ReporteMsResponse> misReportes = todosLosReportes.stream()
                 .filter(r -> idUsuario.equals(r.usuarioId())) 
                 .collect(Collectors.toList());

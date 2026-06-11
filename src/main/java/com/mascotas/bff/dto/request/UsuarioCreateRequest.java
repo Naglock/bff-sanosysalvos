@@ -9,5 +9,6 @@ public record UsuarioCreateRequest(
     @Schema(example = "20-10-1995") String fechaNacimiento,
     @Schema(example = "maria.lopez@example.com") String email,
     @Schema(example = "912345678") Integer telefono,
-    @Schema(example = "PasswordSegura123") String password
+    @Schema(example = "PasswordSegura123") String password,
+    @Schema(example = "USUARIO") String rol
 ) {}
