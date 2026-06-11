@@ -16,5 +16,6 @@ public record ReporteMsResponse(
     String nombreMascota,
     String razaMascota,
     Integer usuarioId,
+    Integer mascotaId,
     String urlFoto
 ) {}
