@@ -81,7 +81,7 @@ public class ReporteController {
         } else {
             tipoReporteFinal = "AVISTADA";
             String nombreFinal = (request.nombreMascota() != null && !request.nombreMascota().isBlank()) ? request.nombreMascota() : "Desconocido";
-            String chipFinal = (request.chipMascota() != null && !request.chipMascota().isBlank()) ? request.chipMascota() : "Sin registro";
+            String chipFinal = (request.chipMascota() != null && !request.chipMascota().isBlank()) ? request.chipMascota() : "SR-" + java.util.UUID.randomUUID().toString().substring(0, 8);
             String razaFinal = (request.raza() != null && !request.raza().isBlank()) ? request.raza() : "Mestizo";
             String sexoFinal = (request.sexo() != null && !request.sexo().isBlank()) ? request.sexo() : "Desconocido";
             
