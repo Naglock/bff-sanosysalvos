@@ -68,7 +68,7 @@ public class ReporteController {
         
         String nombreMascotaReporte;
         String razaMascotaReporte;
-        String tipoReporteFinal = (request.tipo() != null && !request.tipo().isBlank()) ? request.tipo() : "PERDIDO";
+        String tipoReporteFinal = (request.tipo() != null && !request.tipo().isBlank()) ? request.tipo() : "AVISTADA";
 
         if (request.mascotaId() != null) {
             idMascotaFinal = request.mascotaId();
@@ -77,7 +77,6 @@ public class ReporteController {
             razaMascotaReporte = mascotaExistente.raza();
             
         } else {
-            tipoReporteFinal = "AVISTADA";
             String nombreFinal = (request.nombreMascota() != null && !request.nombreMascota().isBlank()) ? request.nombreMascota() : "Desconocido";
             String chipFinal = (request.chipMascota() != null && !request.chipMascota().isBlank()) ? request.chipMascota() : "SR-" + java.util.UUID.randomUUID().toString().substring(0, 8);
             String razaFinal = (request.raza() != null && !request.raza().isBlank()) ? request.raza() : "Mestizo";
