@@ -68,12 +68,10 @@ public class ReporteController {
         
         String nombreMascotaReporte;
         String razaMascotaReporte;
-        String tipoReporteFinal;
+        String tipoReporteFinal = (request.tipo() != null && !request.tipo().isBlank()) ? request.tipo() : "PERDIDO";
 
         if (request.mascotaId() != null) {
             idMascotaFinal = request.mascotaId();
-            tipoReporteFinal = "PERDIDO";
-            
             MascotaMsResponse mascotaExistente = mascotaClient.buscarPorId(idMascotaFinal);
             nombreMascotaReporte = mascotaExistente.nombreMascota();
             razaMascotaReporte = mascotaExistente.raza();
@@ -83,8 +81,7 @@ public class ReporteController {
             String nombreFinal = (request.nombreMascota() != null && !request.nombreMascota().isBlank()) ? request.nombreMascota() : "Desconocido";
             String chipFinal = (request.chipMascota() != null && !request.chipMascota().isBlank()) ? request.chipMascota() : "SR-" + java.util.UUID.randomUUID().toString().substring(0, 8);
             String razaFinal = (request.raza() != null && !request.raza().isBlank()) ? request.raza() : "Mestizo";
-            String sexoFinal = (request.sexo() != null && !request.sexo().isBlank()) ? request.sexo() : "Desconocido";
-            
+            String sexoFinal = (request.sexo() != null && !request.sexo().isBlank()) ? request.sexo() : "Desconocido";       
             MascotaCreateRequest mascotaCall = new MascotaCreateRequest(
                 chipFinal, nombreFinal, request.especie(), razaFinal, sexoFinal, request.tamaño(), request.color(), idUsuarioAutenticado
             );

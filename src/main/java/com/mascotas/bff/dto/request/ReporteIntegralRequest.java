@@ -9,6 +9,7 @@ public record ReporteIntegralRequest(
     String especie,
     String tamaño,
     String color,
+    String tipo,
     String descripcion,
     Double latitud,
     Double longitud
