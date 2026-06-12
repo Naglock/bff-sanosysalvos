@@ -20,8 +20,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,7 +54,7 @@ public class ReporteController {
     @PostMapping(value = "/integral", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ReporteMsResponse> guardarReporteIntegral(
         @Parameter(description = "Pega el JSON exacto aquí") @RequestPart("datos") String datosJson,
-        @RequestPart("foto") MultipartFile foto,
+        @RequestPart("fotos") List<MultipartFile> fotos,
         @Parameter(hidden = true) @CookieValue(name = "jwt_token") String token) {
     
         ReporteIntegralRequest request;
@@ -96,9 +98,16 @@ public class ReporteController {
             tipoReporteFinal, "ACTIVO", request.descripcion(), request.latitud(), request.longitud(), idMascotaFinal, idUsuarioAutenticado
         );
 
-        ReporteMsResponse reporteCreadoCrudo = reporteClient.guardarIntegral(reporteCall, foto, token);
-        
+        ReporteMsResponse reporteCreadoCrudo = reporteClient.guardarIntegral(reporteCall, fotos, token);
         UsuarioMsResponse usuarioInfo = usuarioClient.buscarPorId(idUsuarioAutenticado, token);
+
+        List<String> urlsFotosFinales = new ArrayList<>();
+        if (reporteCreadoCrudo.urlsFotos() != null && !reporteCreadoCrudo.urlsFotos().isEmpty()) {
+            String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString();
+            urlsFotosFinales = reporteCreadoCrudo.urlsFotos().stream()
+                .map(nombre -> baseUrl + "/api/bff/reportes/fotos/" + nombre)
+                .collect(Collectors.toList());
+        }
 
         ReporteMsResponse reporteEnriquecido = new ReporteMsResponse(
             reporteCreadoCrudo.idReporte(),
@@ -114,7 +123,7 @@ public class ReporteController {
             razaMascotaReporte,         
             reporteCreadoCrudo.usuarioId(),
             reporteCreadoCrudo.mascotaId(),
-            reporteCreadoCrudo.urlFoto()
+            urlsFotosFinales 
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(reporteEnriquecido);
@@ -202,6 +211,7 @@ public class ReporteController {
         Integer telefonoContactoFinal = null;
         String nombreMascotaFinal = "Desconocido";
         String razaMascotaFinal = "Desconocida";
+        List<String> urlsFotosFinales = new ArrayList<>();
 
         try {
             if (reporteCrudo.usuarioId() != null) {
@@ -211,8 +221,7 @@ public class ReporteController {
                     telefonoContactoFinal = usuarioInfo.telefono();
                 }
             }
-        } catch (Exception e) {
-            System.err.println("No se pudo obtener la info del usuario para el reporte " + reporteCrudo.idReporte());
+        } catch (Exception ignored) {
         }
 
         try {
@@ -223,8 +232,14 @@ public class ReporteController {
                     razaMascotaFinal = mascotaInfo.raza();
                 }
             }
-        } catch (Exception e) {
-            System.err.println("No se pudo obtener la info de la mascota para el reporte " + reporteCrudo.idReporte());
+        } catch (Exception ignored) {
+        }
+
+        if (reporteCrudo.urlsFotos() != null && !reporteCrudo.urlsFotos().isEmpty()) {
+            String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString();
+            urlsFotosFinales = reporteCrudo.urlsFotos().stream()
+                .map(nombre -> baseUrl + "/api/bff/reportes/fotos/" + nombre)
+                .collect(Collectors.toList());
         }
 
         return new ReporteMsResponse(
@@ -241,7 +256,19 @@ public class ReporteController {
             razaMascotaFinal,
             reporteCrudo.usuarioId(),
             reporteCrudo.mascotaId(),
-            reporteCrudo.urlFoto()
+            urlsFotosFinales
         );
+    }
+    
+    @Operation(summary = "Obtener foto del reporte para el Frontend (Proxy)")
+    @GetMapping(value = "/fotos/{nombreFoto}", produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    public ResponseEntity<byte[]> obtenerFotoParaFrontend(
+            @PathVariable String nombreFoto,
+            @Parameter(hidden = true) @CookieValue(name = "jwt_token", required = false) String token) {
+        try {
+            return reporteClient.obtenerFotoDesdeMsReportes(nombreFoto);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

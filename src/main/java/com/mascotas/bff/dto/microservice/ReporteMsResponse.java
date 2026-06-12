@@ -1,5 +1,7 @@
 package com.mascotas.bff.dto.microservice;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record ReporteMsResponse(
@@ -17,5 +19,5 @@ public record ReporteMsResponse(
     String razaMascota,
     Integer usuarioId,
     Integer mascotaId,
-    String urlFoto
+    List<String> urlsFotos
 ) {}

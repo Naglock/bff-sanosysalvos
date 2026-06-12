@@ -10,6 +10,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -67,36 +68,35 @@ public class ReporteClient {
 
     // --- MÉTODOS PUT/DELETE/POST (Privados, SÍ necesitan token) ---
     
-    public ReporteMsResponse guardarIntegral(ReporteCreateRequest request, MultipartFile foto, String token) {
+    public ReporteMsResponse guardarIntegral(ReporteCreateRequest request, List<MultipartFile> fotos, String token) {
         try {
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 
-            // 1. Preparamos la parte del JSON (@RequestPart "reporte" en el backend)
             HttpHeaders jsonHeaders = new HttpHeaders();
             jsonHeaders.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<ReporteCreateRequest> jsonEntity = new HttpEntity<>(request, jsonHeaders);
             body.add("reporte", jsonEntity);
 
-            // 2. Preparamos la parte del Archivo (@RequestPart "foto" en el backend)
-            if (foto != null && !foto.isEmpty()) {
-                // Usamos ByteArrayResource sobreescribiendo getFilename() para que Spring sepa el nombre del archivo
-                ByteArrayResource fileResource = new ByteArrayResource(foto.getBytes()) {
-                    @Override
-                    public String getFilename() {
-                        return foto.getOriginalFilename();
+            if (fotos != null && !fotos.isEmpty()) {
+                for (MultipartFile foto : fotos) {
+                    if (foto != null && !foto.isEmpty()) {
+                        ByteArrayResource fileResource = new ByteArrayResource(foto.getBytes()) {
+                            @Override
+                            public String getFilename() {
+                                return foto.getOriginalFilename();
+                            }
+                        };
+                        
+                        HttpHeaders fileHeaders = new HttpHeaders();
+                        fileHeaders.setContentType(MediaType.parseMediaType(
+                                foto.getContentType() != null ? foto.getContentType() : MediaType.IMAGE_JPEG_VALUE));
+                        
+                        HttpEntity<ByteArrayResource> fileEntity = new HttpEntity<>(fileResource, fileHeaders);
+                        body.add("foto", fileEntity);
                     }
-                };
-                
-                HttpHeaders fileHeaders = new HttpHeaders();
-                // Si el content type es nulo, asumimos jpeg por defecto para evitar errores
-                fileHeaders.setContentType(MediaType.parseMediaType(
-                        foto.getContentType() != null ? foto.getContentType() : MediaType.IMAGE_JPEG_VALUE));
-                
-                HttpEntity<ByteArrayResource> fileEntity = new HttpEntity<>(fileResource, fileHeaders);
-                body.add("foto", fileEntity);
+                }
             }
 
-            // 3. Enviamos la petición multipart al microservicio
             return restClient.post()
                     .uri("/api/reporte")
                     .header("Authorization", "Bearer " + token)
@@ -106,7 +106,7 @@ public class ReporteClient {
                     .body(ReporteMsResponse.class);
 
         } catch (IOException e) {
-            throw new RuntimeException("Error al procesar la imagen antes de enviarla al backend", e);
+            throw new RuntimeException("Error al procesar las imagenes antes de enviarlas al backend", e);
         }
     }
 
@@ -126,4 +126,12 @@ public class ReporteClient {
                 .retrieve()
                 .toBodilessEntity();
     }
+
+    public ResponseEntity<byte[]> obtenerFotoDesdeMsReportes(String nombreFoto) {
+        return restClient.get()
+                .uri("/uploads/" + nombreFoto)
+                .retrieve()
+                .toEntity(byte[].class);
+    }
+    
 }
