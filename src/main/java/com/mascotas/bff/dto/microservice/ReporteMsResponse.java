@@ -19,5 +19,5 @@ public record ReporteMsResponse(
     String razaMascota,
     Integer usuarioId,
     Integer mascotaId,
-    List<String> urlsFotos
+    List<String> fotosBase64
 ) {}
