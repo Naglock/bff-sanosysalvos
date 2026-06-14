@@ -22,7 +22,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Base64;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -211,7 +210,7 @@ public class ReporteController {
         Integer telefonoContactoFinal = null;
         String nombreMascotaFinal = "Desconocido";
         String razaMascotaFinal = "Desconocida";
-        List<String> fotosFinales = new ArrayList<>();
+        List<String> urlsFotosFinales = new ArrayList<>();
 
         try {
             if (reporteCrudo.usuarioId() != null) {
@@ -236,19 +235,9 @@ public class ReporteController {
         }
 
         if (reporteCrudo.urlsFotos() != null && !reporteCrudo.urlsFotos().isEmpty()) {
-            fotosFinales = reporteCrudo.urlsFotos().stream()
-                .map(nombreArchivo -> {
-                    try {
-                        byte[] bytesImagen = reporteClient.obtenerFotoDesdeMsReportes(nombreArchivo).getBody();
-                        if (bytesImagen != null) {
-                            String base64 = Base64.getEncoder().encodeToString(bytesImagen);
-                            return "data:image/jpeg;base64," + base64;
-                        }
-                    } catch (Exception e) {
-                    }
-                    return null;
-                })
-                .filter(java.util.Objects::nonNull)
+            String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().toUriString();
+            urlsFotosFinales = reporteCrudo.urlsFotos().stream()
+                .map(nombre -> baseUrl + "/api/bff/reportes/fotos/" + nombre)
                 .collect(Collectors.toList());
         }
 
@@ -266,7 +255,7 @@ public class ReporteController {
             razaMascotaFinal,
             reporteCrudo.usuarioId(),
             reporteCrudo.mascotaId(),
-            fotosFinales
+            urlsFotosFinales
         );
     }
     
