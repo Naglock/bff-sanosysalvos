@@ -15,7 +15,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 // Colocar el puerto usado en el frontend
-                .allowedOrigins(frontendUrl, "http://localhost:5173", "http://localhost:3000") 
+                .allowedOrigins(frontendUrl, "http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000") 
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 // allowCredentials en true es obligatorio para que React pueda recibir cookies HttpOnly
