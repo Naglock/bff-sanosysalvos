@@ -133,6 +133,9 @@ public class ReporteController {
     public ResponseEntity<List<ReporteMsResponse>> listarTodos(
             @Parameter(hidden = true) @CookieValue(name = "jwt_token", required = false) String token) {
         List<ReporteMsResponse> reportesCrudos = reporteClient.listarTodos();
+        if (reportesCrudos == null) {
+            return ResponseEntity.ok(new ArrayList<>());
+        }
         List<ReporteMsResponse> reportesEnriquecidos = reportesCrudos.stream()
                 .map(reporte -> enriquecerReporte(reporte, token))
                 .collect(Collectors.toList());
@@ -154,6 +157,9 @@ public class ReporteController {
             @PathVariable String tipo,
             @Parameter(hidden = true) @CookieValue(name = "jwt_token", required = false) String token) {
         List<ReporteMsResponse> reportesCrudos = reporteClient.buscarPorTipo(tipo);
+        if (reportesCrudos == null) {
+            return ResponseEntity.ok(new ArrayList<>());
+        }
         List<ReporteMsResponse> reportesEnriquecidos = reportesCrudos.stream()
                 .map(reporte -> enriquecerReporte(reporte, token))
                 .collect(Collectors.toList());
@@ -167,6 +173,9 @@ public class ReporteController {
             @PathVariable String estado,
             @Parameter(hidden = true) @CookieValue(name = "jwt_token", required = false) String token) {
         List<ReporteMsResponse> reportesCrudos = reporteClient.buscarPorTipoYEstado(tipo, estado);
+        if (reportesCrudos == null) {
+            return ResponseEntity.ok(new ArrayList<>());
+        }
         List<ReporteMsResponse> reportesEnriquecidos = reportesCrudos.stream()
                 .map(reporte -> enriquecerReporte(reporte, token))
                 .collect(Collectors.toList());
@@ -180,6 +189,9 @@ public class ReporteController {
             @PathVariable String tipo,
             @Parameter(hidden = true) @CookieValue(name = "jwt_token", required = false) String token) {
         List<ReporteMsResponse> reportesCrudos = reporteClient.buscarPorEspecieYTipo(especie, tipo);
+        if (reportesCrudos == null) {
+            return ResponseEntity.ok(new ArrayList<>());
+        }
         List<ReporteMsResponse> reportesEnriquecidos = reportesCrudos.stream()
                 .map(reporte -> enriquecerReporte(reporte, token))
                 .collect(Collectors.toList());
