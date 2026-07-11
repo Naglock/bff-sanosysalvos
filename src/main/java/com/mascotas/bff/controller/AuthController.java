@@ -7,8 +7,9 @@ import com.mascotas.bff.dto.response.UserInfoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,13 +31,15 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<UserInfoResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         AuthMsResponse msResponse = authClient.login(request);
-        Cookie jwtCookie = new Cookie("jwt_token", msResponse.jwtToken());
-        jwtCookie.setHttpOnly(true);
-        jwtCookie.setSecure(false); // Cambiar a true en Producción con HTTPS
-        jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(24 * 60 * 60); 
+        ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", msResponse.jwtToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(24 * 60 * 60)
+                .sameSite("None")
+                .build();
         
-        response.addCookie(jwtCookie);
+        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
 
         UserInfoResponse frontendResponse = new UserInfoResponse(
                 msResponse.nombre(),
@@ -50,10 +53,14 @@ public class AuthController {
     @Operation(summary = "Cerrar sesión", description = "Elimina la cookie de sesión del navegador.")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletResponse response) {
-        Cookie deleteCookie = new Cookie("jwt_token", null);
-        deleteCookie.setMaxAge(0); 
-        deleteCookie.setPath("/");
-        response.addCookie(deleteCookie);
+        ResponseCookie deleteCookie = ResponseCookie.from("jwt_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("None")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
         return ResponseEntity.ok().build();
     }
 }
